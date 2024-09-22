@@ -10,20 +10,35 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
-      - mongodb:/data/db
+      - mongodb_data:/data/db
     networks:
-      - mongodb
+      - mongodb_network
+    restart: always
+
+  mongo-express:
+    image: mongo-express:${MONGO_EXPRESS_VERSION:-1.0.2-18}
+    container_name: mongo-express
+    restart: always
+    ports:
+      - ${MONGO_EXPRESS_PORT:-8001}:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_EXPRESS_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_EXPRESS_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_EXPRESS_USER}:${MONGO_EXPRESS_PASSWORD}@mongodb:${MONGO_PORT:-27017}/
+      ME_CONFIG_BASICAUTH: false
+    networks:
+      - mongodb_network
 
 volumes:
-  mongodb:
-    name: mongodb
+  mongodb_data:
+    name: mongodb_data
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: ./mongo-data
+      device: ./mongo/data
 
 networks:
-  mongodb:
-    name: mongo
+  mongodb_network:
+    name: mongodb_network
     driver: bridge
